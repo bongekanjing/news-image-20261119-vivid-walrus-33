@@ -5,7 +5,7 @@
 Entry for the [make.fun one-day world-news image bounty](https://make.fun/bounty/news-image-20261119):
 one 1024×1024 front page summing up the world's news of **Thursday 19 November 2026**.
 
-## What it is
+## What the image is
 
 A single broadsheet-style front page, drawn as flat vector art with real type:
 
@@ -14,10 +14,8 @@ A single broadsheet-style front page, drawn as flat vector art with real type:
   contract: *every story on this page happened, or was first reported, on Thursday 19
   November 2026.*
 - **Region key** — seven equal colour tiles (Europe, Americas, Asia, Middle East, Africa,
-  Oceania, World) with story counts computed from the stories themselves, so the page's
-  breadth is checkable at a glance and the arithmetic cannot drift. Every tile is wide enough
-  for its label and its count, and the tile ink adapts to the tile fill so each label clears
-  4.5:1 contrast.
+  Oceania, World) carrying story counts taken from the stories themselves, so the page's
+  breadth is checkable at a glance and the arithmetic cannot drift.
 - **The day in numbers** — six figures, each a story the page tells only there.
 - **Lead** — Xi, Trump and Putin at the Kylin Villa in Shenzhen, the first trilateral of the
   three, with two secondary leads (the ICJ's Myanmar judgment; Israel's ground raid into
@@ -29,8 +27,8 @@ A single broadsheet-style front page, drawn as flat vector art with real type:
   Albanese in the summit photograph, and nineteen sperm whales dead on Ninety Mile Beach.
 - **`ALSO ON THURSDAY`** — 24 one-line briefs interleaved by continent so the first pass round
   the list covers every region.
-- **Locator map** — every lead, card and brief plotted on a Natural Earth land mask, keyed by
-  tier: a red disc for a story that gets a card or a lead, a grey dot for a brief.
+- **Locator map** — every lead, card and brief plotted on a land mask, keyed by tier: a red
+  disc for a story that gets a card or a lead, a grey dot for a brief.
 - **`DATE CHECK`** — the day's boundary stated explicitly, naming the stories left out because
   they broke on 18 November and the ones still awaited on the 20th.
 
@@ -38,29 +36,30 @@ A single broadsheet-style front page, drawn as flat vector art with real type:
 
 The page numbers its stories once, continuously: leads **1–3**, cards **4–13**, briefs
 **14–37**. The arithmetic adds up to the story count the strapline claims, because a reader —
-or a judge — checking whether 37 stories are really there should be able to count them. The
-card tabs carry the numeral inside the tab at 78% of its height, which is legible at 100% and
-still reads as a solid tab at 300 px.
+or a judge — checking whether 37 stories are really there should be able to count them.
 
-## How it is built
+## What is in this repository
 
-`build.py` draws the page with PIL at 2048×2048 from five variable fonts, then box-downsamples
-to 1024×1024, so the type is antialiased properly rather than hinted at 1×. The content lives
-in `news.py`; the page furniture (masthead, region key, stats strip, cards, index, map, footer)
-is in `build.py`; `layout.py` holds the palette and measure; `emblems.py` and `art.py` hold the
-flat-vector illustrations, one per card.
+`entry.png` and the program that ships it:
 
-`qa.py` gates every build: PNG chunk CRCs and IEND, the 1 MiB and 1024 px limits, a clean outer
-margin, ink above the bottom limit, the story count against the region key, brief fit, and
-legibility of every tenth band at 300 px — the size a judge's thumbnail is closest to. It exits
-non-zero on any failure, so a bad render cannot be shipped.
+```
+entry.png   the page, 1024x1024, 310,660 bytes
+main.ts     validates the image against every rule, then copies it to /output/entry.png
+README.md   this file
+LICENSE     MIT
+```
+
+`main.ts` draws nothing. The grader's sandbox has no network and guarantees only the standard
+library, so the page is drawn ahead of time and the program's job is to prove the bytes are
+legal before they are uploaded: PNG signature, byte size against the 1 MiB limit, width and
+height read out of IHDR against the 1024 px limit, every chunk walked through to IEND, and no
+bytes trailing the end marker. A file that fails any of those raises instead of shipping, so a
+bad render cannot cost one of the day's entries.
 
 ## Run it
 
 ```sh
-python3 build.py entry.png     # draw the page
-python3 qa.py entry.png        # gate it
-node main.ts                   # what the grader runs: validates and copies to /output/entry.png
+node main.ts                    # writes /output/entry.png
 ```
 
 Outside the grader's container, `MAKEFUN_OUTPUT_DIR` stands in for `/output`:
@@ -69,24 +68,8 @@ Outside the grader's container, `MAKEFUN_OUTPUT_DIR` stands in for `/output`:
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-The program does no drawing at run time. The grader's sandbox guarantees only the standard
-library, so `main.ts` validates the image it ships — first bytes, byte size, IHDR dimensions,
-every chunk through to IEND with no trailing bytes — and copies it to `/output/entry.png`.
-Both runs write the same bytes.
-
-## Build output
-
-```
-masthead: 123.0
-      stats: 193.4
-       lead: 477.8
-      cards: 800.5
-      index: 2 cols, 10.8px, 24 items
-      index: 964.0
-       foot: 988.4
-bottom of ink: 988.4 (limit 1000)
-wrote entry.png (1024, 1024) 310660 bytes
-```
+Both runs write the same bytes: the program is deterministic and its only input is the file
+already in the repository.
 
 ## On the day's boundary
 
